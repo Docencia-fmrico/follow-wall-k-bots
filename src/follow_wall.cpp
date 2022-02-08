@@ -6,6 +6,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
+#include "geometry_msgs/msg/twist.hpp"
 
 // Execute:
 //  ros2 lifecycle list /lifecycle_node_example
@@ -19,6 +20,7 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
     FollowWallNode()
         : rclcpp_lifecycle::LifecycleNode("lifecycle_node_example") {
         laserSub_ = this->create_subscription<sensor_msgs::msg::LaserScan>("/scan_raw", 10, std::bind(&FollowWallNode::LaserCallback, this, _1));
+        pubVelocity_ = this->create_publisher<geometry_msgs::msg::Twist>("/nav_vel", 100);
     }
 
     int angle2pos(float angle, float min, float max, int size) {
@@ -52,6 +54,64 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
         laser_regions = measurements;
     }
 
+
+    // Check state depend on the distances
+    void CheckState () {
+
+        float side_distance, center_distance;
+
+        center_distance = laser_regions[1];
+        if (side == LEFT_SIDE) {
+            side_distance = laser_regions[0];
+        } else {
+            side_distance = laser_regions[2];
+        }
+
+        if (center_distance > MAX_DISTANCE) {  // Nothing in front
+            if (MIN_DISTANCE <= side_distance && side_distance <= MAX_DISTANCE) {  
+                state_ = GOING_FORWARD;
+            } else if (side_distance < MIN_DISTANCE) {  // go futher
+                state_ = TURN_OPPOSITE_SIDE;
+            } else if (side_distance > MAX_DISTANCE) {  // move closer
+                state_ = TURN_SAME_SIDE;
+            }
+        } else {  
+            if (side_distance <= MAX_DISTANCE) {
+                state_ = TURN_OPPOSITE_SIDE;
+            } else {
+                state_ = TURN_SAME_SIDE;
+            }
+        }
+    }
+
+    
+    void FollowTheWall () {
+
+        geometry_msgs::msg::Twist msg;
+        int angular_velocity = ANGULAR_VELOCITY;
+
+        if (side == RIGHT_SIDE) {
+            angular_velocity = -ANGULAR_VELOCITY;
+        }
+
+        switch (state_) {
+            case GOING_FORWARD:
+                msg.linear.x = LINEAL_VELOCITY;
+                msg.angular.z = 0;
+
+            case TURN_SAME_SIDE:
+                msg.linear.x = LINEAL_VELOCITY / 4;
+                msg.angular.z = angular_velocity;
+
+            case TURN_OPPOSITE_SIDE:
+                msg.linear.x = LINEAL_VELOCITY / 4;
+                msg.angular.z = -angular_velocity;
+        }
+
+        pul_vel_.publish(msg);
+
+    }
+
     using CallbackReturnT =
         rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
@@ -63,11 +123,13 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
 
     CallbackReturnT on_activate(const rclcpp_lifecycle::State &state) {
         RCLCPP_INFO(get_logger(), "[%s] Activating from [%s] state...", get_name(), state.label().c_str());
+        pubVelocity_->on_activate();
         return CallbackReturnT::SUCCESS;
     }
 
     CallbackReturnT on_deactivate(const rclcpp_lifecycle::State &state) {
         RCLCPP_INFO(get_logger(), "[%s] Deactivating from [%s] state...", get_name(), state.label().c_str());
+        pubVelocity_->on_deactivate();
         return CallbackReturnT::SUCCESS;
     }
 
@@ -78,6 +140,7 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
 
     CallbackReturnT on_shutdown(const rclcpp_lifecycle::State &state) {
         RCLCPP_INFO(get_logger(), "[%s] Shutting Down from [%s] state...", get_name(), state.label().c_str());
+        pubVelocity_.reset();
         return CallbackReturnT::SUCCESS;
     }
 
@@ -93,6 +156,11 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
                 return;
             }
 
+            if (wall_found) {
+                CheckState();
+                FollowTheWall();
+            }
+
             RCLCPP_INFO(get_logger(), "Laser Measures: Left %f, Center %f, Right %f", laser_regions[0], laser_regions[1], laser_regions[2]);
 
             RCLCPP_INFO(get_logger(), "Node [%s] active", get_name());
@@ -102,6 +170,27 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
    private:
     std::vector<float> laser_regions;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserSub_;
+    rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr pubVelocity_;
+
+    const int LINEAL_VELOCITY = 1.0;
+    const int ANGULAR_VELOCITY = 1.0;
+    const float MAX_DISTANCE = 0.55;
+    const float MIN_DISTANCE = 0.45;
+    bool wall_found = false;
+
+    enum side {
+        LEFT_SIDE,
+        RIGHT_SIDE
+    };
+
+    enum movement {
+        GOING_FORWARD,
+        TURN_SAME_SIDE,  // wall side
+        TURN_OPPOSITE_SIDE
+    };
+
+    int state_ = GOING_FORWARD;
+
 };
 
 int main(int argc, char *argv[]) {
