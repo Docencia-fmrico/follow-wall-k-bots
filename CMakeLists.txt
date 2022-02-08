@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(practica1)
+project(follow-wall-k-bots)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)

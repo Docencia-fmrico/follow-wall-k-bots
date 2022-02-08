@@ -35,17 +35,21 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
 
         float center = angle2pos(0, min, max, size);
         float right = angle2pos(-M_PI / 2, min, max, size);
-
         float left = angle2pos(M_PI / 2, min, max, size);
 
-        std::cout << "left = " << left << " center = " << center << " right = " << right << std::endl;
+        //std::cout << "left = " << left << " center = " << center << " right = " << right << std::endl;
 
         float minRight = *std::min_element(std::next(msg->ranges.begin(), right - 5), std::next(msg->ranges.begin(), right + 5));
         float minCenter = *std::min_element(std::next(msg->ranges.begin(), center - 5), std::next(msg->ranges.begin(), center + 5));
         float minLeft = *std::min_element(std::next(msg->ranges.begin(), left - 5), std::next(msg->ranges.begin(), left + 5));
 
-        std::cout << "minLeft = " << minLeft << " minCenter = " << minCenter << " minRight = " << minRight << std::endl
-                  << std::endl;
+        std::vector<float> measurements;
+
+        measurements.push_back(minLeft);
+        measurements.push_back(minCenter);
+        measurements.push_back(minRight);
+
+        laser_regions = measurements;
     }
 
     using CallbackReturnT =
@@ -83,16 +87,21 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
     }
 
     void do_work() {
-        if (get_current_state().id() != lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
-            return;
-        }
+        if (laser_regions.size() > 0){
+            
+            if (get_current_state().id() != lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
+                return;
+            }
 
-        RCLCPP_INFO(get_logger(), "Node [%s] active", get_name());
+            RCLCPP_INFO(get_logger(), "Laser Measures: Left %f, Center %f, Right %f", laser_regions[0], laser_regions[1], laser_regions[2]);
+
+            RCLCPP_INFO(get_logger(), "Node [%s] active", get_name());
+        }
     }
 
    private:
-    std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::LaserScan>> laserSub_;
-    //rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserSub_;
+    std::vector<float> laser_regions;
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserSub_;
 };
 
 int main(int argc, char *argv[]) {
