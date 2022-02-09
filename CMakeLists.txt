@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(follow-wall-k-bots)
+project(follow-wall)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -17,8 +17,10 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
+
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -28,16 +30,31 @@ set(dependencies
     rclcpp_lifecycle
     std_msgs
     sensor_msgs
+    geometry_msgs 
 )
 
-add_executable(follow_wall src/follow_wall.cpp)
+include_directories(include)
+
+add_library(${PROJECT_NAME} SHARED
+src/follow_wall/follow_wall.cpp
+)
+
+add_executable(follow_wall src/follow_wall/follow_wall.cpp)
 ament_target_dependencies(follow_wall ${dependencies})
+
+add_executable(follow_wall_main src/follow_wall_main.cpp)
+ament_target_dependencies(follow_wall_main ${dependencies})
+
+target_link_libraries(follow_wall ${PROJECT_NAME})
 
 install(TARGETS
   follow_wall
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+install(DIRECTORY include/
+DESTINATION include/
 )
 
 if(BUILD_TESTING)
@@ -50,5 +67,10 @@ if(BUILD_TESTING)
   #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
+ament_export_dependencies(${dependencies})
+ament_target_dependencies(${PROJECT_NAME} ${dependencies})
 
 ament_package()
