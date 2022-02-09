@@ -42,42 +42,38 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
         float max = msg->angle_max;
         float size = msg->ranges.size();
 
-        float center = angle2pos(0, min, max, size);
-        float right = angle2pos(-M_PI / 2, min, max, size);
-        float left = angle2pos(M_PI / 2, min, max, size);
+        float right = angle2pos(-M_PI / 2 - M_PI / 36, min, max, size);
+        float diag_right = angle2pos(-M_PI / 2 + M_PI / 36, min, max, size);
 
-        float diag_right = angle2pos(-M_PI / 4, min, max, size);
-        float diag_left  = angle2pos(M_PI / 4, min, max, size);
+        float left = angle2pos(M_PI / 2 + M_PI / 36, min, max, size);
+        float diag_left = angle2pos(M_PI / 2 - M_PI / 36, min, max, size);
 
-        // std::cout << "left = " << left << " center = " << center << " right =
-        // " << right << std::endl;
-    
+        float center_right = angle2pos(-M_PI / 36, min, max, size);
+        float center_left = angle2pos(M_PI / 36, min, max, size);
+
+        std::cout << "left = " << left << "diag_left = " << diag_left << "diag_right = " << diag_right << " right = " << right << std::endl;
+        std::cout << "center right: " << center_right << " center left" << center_left << std::endl;
+
         float minRight =
-            *std::min_element(std::next(msg->ranges.begin(), right - 1),
-                              std::next(msg->ranges.begin(), right + 1));
+            *std::min_element(std::next(msg->ranges.begin(), right),
+                              std::next(msg->ranges.begin(), diag_right));
         float minCenter =
-            *std::min_element(std::next(msg->ranges.begin(), center - 1),
-                              std::next(msg->ranges.begin(), center + 1));
+            *std::min_element(std::next(msg->ranges.begin(), center_right),
+                              std::next(msg->ranges.begin(), center_left));
         float minLeft =
-            *std::min_element(std::next(msg->ranges.begin(), left - 1),
-                              std::next(msg->ranges.begin(), left + 1));
-        
-        float minDiagRight =
-            *std::min_element(std::next(msg->ranges.begin(), diag_right - 1),
-                              std::next(msg->ranges.begin(), diag_right + 1));
-        
-        float minDiagLeft =
-            *std::min_element(std::next(msg->ranges.begin(), diag_left - 1),
-                              std::next(msg->ranges.begin(), diag_left + 1));
+            *std::min_element(std::next(msg->ranges.begin(), diag_left),
+                              std::next(msg->ranges.begin(), left));
+
+        RCLCPP_WARN(get_logger(), "Laser Measures: Left %f, Center %f, Right %f", minLeft, minCenter, minRight);
 
         std::vector<float> measurements;
 
         measurements.push_back(minLeft);
-        measurements.push_back(minDiagLeft);
+
         measurements.push_back(minCenter);
-        measurements.push_back(minDiagRight);    
+
         measurements.push_back(minRight);
-        
+
         laser_regions = measurements;
     }
 
@@ -85,27 +81,44 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
     void CheckState() {
         float side_distance, center_distance;
 
-        center_distance = laser_regions[2];
+        center_distance = laser_regions[CENTER];
+
         if (side_ == LEFT_SIDE) {
-            side_distance = laser_regions[0];
+            side_distance = laser_regions[LEFT];
+
         } else {
-            side_distance = laser_regions[4];
+            side_distance = laser_regions[RIGHT];
         }
 
-        if (center_distance > MAX_DISTANCE) {  // Nothing in front
-            if (MIN_DISTANCE <= side_distance && side_distance <= MAX_DISTANCE) {
-                state_ = GOING_FORWARD;
-            } else if (side_distance < MIN_DISTANCE) {  // go futher
-                state_ = TURN_OPPOSITE_SIDE;
-            } else if (side_distance > MAX_DISTANCE) {  // move closer
-                state_ = TURN_SAME_SIDE;
+        RCLCPP_ERROR(get_logger(), "Laser Measures: Left %f, Center %f, Right %f", laser_regions[LEFT], laser_regions[CENTER], laser_regions[RIGHT]);
+
+        if (side_distance < MIN_DISTANCE || center_distance < MIN_DISTANCE) {
+            RCLCPP_WARN(get_logger(), "Condicion0");
+            state_ = TURN_OPPOSITE_SIDE;
+        } else if (side_distance > MAX_DISTANCE && center_distance > MIN_DISTANCE) {
+            RCLCPP_WARN(get_logger(), "Condicion1");
+            state_ = TURN_SAME_SIDE;
+
+            if (side_distance > 1.5 && center_distance > 1.5) {
+                if (counter++ > 50) {
+                    wall_found = false;
+                }
             }
-        } else if (MIN_DISTANCE <= center_distance && center_distance <= MAX_DISTANCE){
-            if (side_distance < MAX_DISTANCE) {
+        } else if (side_distance < MAX_DISTANCE && center_distance > MIN_DISTANCE) {
+            RCLCPP_WARN(get_logger(), "Condicion2");
+            state_ = GOING_FORWARD;
+        } else if (side_distance < MAX_DISTANCE && center_distance < MIN_DISTANCE) {
+            if (side_distance < MIN_DISTANCE) {
+                RCLCPP_WARN(get_logger(), "Condicion3");
                 state_ = TURN_OPPOSITE_SIDE;
             } else {
+                RCLCPP_WARN(get_logger(), "Condicion4");
                 state_ = TURN_SAME_SIDE;
             }
+        }
+
+        if (state_ != TURN_SAME_SIDE){
+            counter = 0;
         }
     }
 
@@ -113,7 +126,7 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
         geometry_msgs::msg::Twist msg;
         float angular_velocity = ANGULAR_VELOCITY;
 
-        if (side_ == LEFT_SIDE) {
+        if (side_ == RIGHT_SIDE) {
             angular_velocity = -ANGULAR_VELOCITY;
         }
 
@@ -126,12 +139,12 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
                 break;
 
             case TURN_SAME_SIDE:
-                msg.linear.x = LINEAL_VELOCITY / 4;
+                msg.linear.x = 0.2;
                 msg.angular.z = angular_velocity;
                 break;
 
             case TURN_OPPOSITE_SIDE:
-                msg.linear.x = LINEAL_VELOCITY / 4;
+                msg.linear.x = 0;
                 msg.angular.z = -angular_velocity;
                 break;
         }
@@ -147,10 +160,11 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
         geometry_msgs::msg::Twist msg;
 
         // Case 1: Diagonal la pared
-        if (laser_regions[0] < MAX_DISTANCE ||
-            laser_regions[2] < MAX_DISTANCE ||
-            laser_regions[4] < MAX_DISTANCE) {
+        if (laser_regions[LEFT] < MAX_DISTANCE ||
+            laser_regions[CENTER] < MAX_DISTANCE ||
+            laser_regions[RIGHT] < MAX_DISTANCE) {
             wall_found = true;
+            counter = 0;
         }
 
         msg.linear.x = LINEAL_VELOCITY;
@@ -173,13 +187,13 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
 
         wall_found = false;
         side_ = RIGHT_SIDE;
-        /*
-        if (laser_regions[0] < MAX_DISTANCE) {
+        counter = 0;
+        
+        if (laser_regions[LEFT] < MAX_DISTANCE) {
             side_ = LEFT_SIDE;
             wall_found = true;
         }
-
-        else if (laser_regions[2] < MAX_DISTANCE) {
+        else if (laser_regions[RIGHT] < MAX_DISTANCE) {
             side_ = RIGHT_SIDE;
             wall_found = true;
         }
@@ -190,14 +204,12 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
 
             if (num == 0) {
                 side_ = LEFT_SIDE;
-
             }
-
             else {
                 side_ = RIGHT_SIDE;
             }
         }
-        */
+        
 
         return CallbackReturnT::SUCCESS;
     }
@@ -258,17 +270,19 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
 
    private:
     std::vector<float> laser_regions;
+    std::vector<float> laser_regions_prev;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserSub_;
 
     rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr pubVelocity_;
 
-    const float LINEAL_VELOCITY = 0.5;
-    const float ANGULAR_VELOCITY = 0.3;
-    const float MAX_DISTANCE = 0.52;
-    const float MIN_DISTANCE = 0.48;
+    const float LINEAL_VELOCITY = 0.6;
+    const float ANGULAR_VELOCITY = 1;
+    const float MAX_DISTANCE = 0.5;
+    const float MIN_DISTANCE = 0.4;
 
     bool wall_found = false;
 
+    int counter = 0;
     enum robot_side {
         LEFT_SIDE = 1,
         RIGHT_SIDE
@@ -280,6 +294,12 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
         TURN_OPPOSITE_SIDE
     };
 
+    enum laser_side {
+        LEFT = 0,
+        CENTER,
+        RIGHT
+    };
+
     int state_ = GOING_FORWARD;
     int side_ = 0;
 };
@@ -289,7 +309,7 @@ int main(int argc, char *argv[]) {
 
     auto node = std::make_shared<FollowWallNode>();
 
-    rclcpp::Rate rate(60);
+    rclcpp::Rate rate(30);
     while (rclcpp::ok()) {
         node->do_work();
 
