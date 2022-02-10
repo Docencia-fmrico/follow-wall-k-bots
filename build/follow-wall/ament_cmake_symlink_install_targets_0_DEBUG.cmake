@@ -1,1 +1,0 @@
-ament_cmake_symlink_install_targets("TARGET_FILES" "/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall/follow_wall_main" "TARGETS" "follow_wall_main" "ARCHIVE_DESTINATION" "lib" "LIBRARY_DESTINATION" "lib" "RUNTIME_DESTINATION" "lib/follow-wall")
