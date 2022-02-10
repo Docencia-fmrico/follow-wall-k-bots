@@ -51,12 +51,6 @@ void FollowWallNode::LaserCallback(
     float center_right = angle2pos(-M_PI / 36, min, max, size);
     float center_left = angle2pos(M_PI / 36, min, max, size);
 
-    std::cout << "left = " << left << "diag_left = " << diag_left
-              << "diag_right = " << diag_right << " right = " << right
-              << std::endl;
-    std::cout << "center right: " << center_right << " center left"
-              << center_left << std::endl;
-
     float minRight =
         *std::min_element(std::next(msg->ranges.begin(), right),
                           std::next(msg->ranges.begin(), diag_right));
@@ -66,8 +60,6 @@ void FollowWallNode::LaserCallback(
     float minLeft = *std::min_element(std::next(msg->ranges.begin(), diag_left),
                                       std::next(msg->ranges.begin(), left));
 
-    RCLCPP_WARN(get_logger(), "Laser Measures: Left %f, Center %f, Right %f",
-                minLeft, minCenter, minRight);
 
     std::vector<float> measurements;
 
@@ -93,31 +85,22 @@ void FollowWallNode::CheckState() {
         side_distance = laser_regions[RIGHT];
     }
 
-    RCLCPP_ERROR(get_logger(), "Laser Measures: Left %f, Center %f, Right %f",
-                 laser_regions[LEFT], laser_regions[CENTER],
-                 laser_regions[RIGHT]);
-
     if (side_distance < MIN_DISTANCE || center_distance < MIN_DISTANCE) {
-        RCLCPP_WARN(get_logger(), "Condicion0");
         state_ = TURN_OPPOSITE_SIDE;
     } else if (side_distance > MAX_DISTANCE && center_distance > MIN_DISTANCE) {
-        RCLCPP_WARN(get_logger(), "Condicion1");
         state_ = TURN_SAME_SIDE;
 
         if (side_distance > 1.5 && center_distance > 1.5) {
-            if (counter++ > 50) {
+            if (counter++ > 100) {
                 wall_found = false;
             }
         }
     } else if (side_distance < MAX_DISTANCE && center_distance > MIN_DISTANCE) {
-        RCLCPP_WARN(get_logger(), "Condicion2");
         state_ = GOING_FORWARD;
     } else if (side_distance < MAX_DISTANCE && center_distance < MIN_DISTANCE) {
         if (side_distance < MIN_DISTANCE) {
-            RCLCPP_WARN(get_logger(), "Condicion3");
             state_ = TURN_OPPOSITE_SIDE;
         } else {
-            RCLCPP_WARN(get_logger(), "Condicion4");
             state_ = TURN_SAME_SIDE;
         }
     }
@@ -274,9 +257,6 @@ void FollowWallNode::do_work() {
                 FollowTheWall();
             }
         }
-        RCLCPP_INFO(get_logger(),
-                    "Laser Measures: Left %f, Center %f, Right %f",
-                    laser_regions[0], laser_regions[1], laser_regions[2]);
         RCLCPP_INFO(get_logger(), "Node [%s] active", get_name());
     }
 }

@@ -39,16 +39,13 @@ add_library(${PROJECT_NAME} SHARED
 src/follow_wall/follow_wall.cpp
 )
 
-add_executable(follow_wall src/follow_wall/follow_wall.cpp)
-ament_target_dependencies(follow_wall ${dependencies})
-
 add_executable(follow_wall_main src/follow_wall_main.cpp)
 ament_target_dependencies(follow_wall_main ${dependencies})
 
-target_link_libraries(follow_wall ${PROJECT_NAME})
+target_link_libraries(follow_wall_main ${PROJECT_NAME})
 
 install(TARGETS
-  follow_wall
+  follow_wall_main
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
