@@ -1,0 +1,34 @@
+[0.017s] Invoking command in '/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/bvillalb/colcon_ws/install/test_hfsm:/home/bvillalb/colcon_ws/install/ros2controlcli:/home/bvillalb/colcon_ws/install/launch_pal:/home/bvillalb/colcon_ws/install/intro_py_ros2:/opt/ros/foxy /usr/bin/cmake --build /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall -- -j16 -l16
+[0.064s] [35m[1mScanning dependencies of target follow-wall[0m
+[0.090s] [ 25%] [32mBuilding CXX object CMakeFiles/follow-wall.dir/src/follow_wall/follow_wall.cpp.o[0m
+[5.797s] [ 50%] [32m[1mLinking CXX shared library libfollow-wall.so[0m
+[6.045s] [ 50%] Built target follow-wall
+[6.077s] [ 75%] [32m[1mLinking CXX executable follow_wall_main[0m
+[6.216s] [100%] Built target follow_wall_main
+[6.227s] Invoked command in '/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/bvillalb/colcon_ws/install/test_hfsm:/home/bvillalb/colcon_ws/install/ros2controlcli:/home/bvillalb/colcon_ws/install/launch_pal:/home/bvillalb/colcon_ws/install/intro_py_ros2:/opt/ros/foxy /usr/bin/cmake --build /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall -- -j16 -l16
+[6.267s] Invoking command in '/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/bvillalb/colcon_ws/install/test_hfsm:/home/bvillalb/colcon_ws/install/ros2controlcli:/home/bvillalb/colcon_ws/install/launch_pal:/home/bvillalb/colcon_ws/install/intro_py_ros2:/opt/ros/foxy /usr/bin/cmake --install /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall
+[6.275s] -- Install configuration: "DEBUG"
+[6.276s] -- Execute custom install script
+[6.276s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/lib/follow-wall/follow_wall_main
+[6.277s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/include//follow_wall/follow_wall.hpp
+[6.277s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/environment/library_path.sh
+[6.277s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/environment/library_path.dsv
+[6.277s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/ament_index/resource_index/package_run_dependencies/follow-wall
+[6.278s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/ament_index/resource_index/parent_prefix_path/follow-wall
+[6.278s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/environment/ament_prefix_path.sh
+[6.278s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/environment/ament_prefix_path.dsv
+[6.278s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/environment/path.sh
+[6.279s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/environment/path.dsv
+[6.279s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/local_setup.bash
+[6.279s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/local_setup.sh
+[6.279s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/local_setup.zsh
+[6.280s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/local_setup.dsv
+[6.280s] -- Symlinking: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/package.dsv
+[6.290s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/ament_index/resource_index/packages/follow-wall
+[6.290s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/cmake/ament_cmake_export_include_directories-extras.cmake
+[6.290s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/cmake/ament_cmake_export_libraries-extras.cmake
+[6.290s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/cmake/ament_cmake_export_dependencies-extras.cmake
+[6.290s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/cmake/follow-wallConfig.cmake
+[6.291s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/cmake/follow-wallConfig-version.cmake
+[6.291s] -- Up-to-date symlink: /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/install/follow-wall/share/follow-wall/package.xml
+[6.293s] Invoked command in '/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/bvillalb/colcon_ws/install/test_hfsm:/home/bvillalb/colcon_ws/install/ros2controlcli:/home/bvillalb/colcon_ws/install/launch_pal:/home/bvillalb/colcon_ws/install/intro_py_ros2:/opt/ros/foxy /usr/bin/cmake --install /home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall

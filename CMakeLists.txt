@@ -13,6 +13,10 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+list(APPEND AMENT_LINT_AUTO_EXCLUDE
+      ament_cmake_copyright
+    )
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -20,10 +24,14 @@ find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
+find_package(ament_cmake_gtest)
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+
+ament_add_gtest(node_test test/node_test.cpp)
+target_link_libraries(node_test ${PROJECT_NAME})
 
 set(dependencies
     rclcpp
@@ -64,6 +72,8 @@ if(BUILD_TESTING)
   #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})

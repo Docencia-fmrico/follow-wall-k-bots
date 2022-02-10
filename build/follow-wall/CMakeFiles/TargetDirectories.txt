@@ -1,0 +1,11 @@
+/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall/CMakeFiles/install/local.dir
+/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall/CMakeFiles/install.dir
+/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall/CMakeFiles/list_install_components.dir
+/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall/CMakeFiles/rebuild_cache.dir
+/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall/CMakeFiles/edit_cache.dir
+/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall/CMakeFiles/test.dir
+/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall/CMakeFiles/install/strip.dir
+/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall/CMakeFiles/follow-wall.dir
+/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall/CMakeFiles/follow-wall_uninstall.dir
+/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall/CMakeFiles/follow_wall_main.dir
+/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall/CMakeFiles/uninstall.dir

@@ -1,0 +1,1 @@
+/home/bvillalb/colcon_ws/src/k-bots/follow-wall-k-bots/build/follow-wall/ament_cmake_environment_hooks/local_setup.bash
