@@ -1,14 +1,32 @@
-
+// Copyright 2022 K-Bots
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <memory>
 
-#include "rclcpp/rclcpp.hpp"
+#include "follow_wall/follow_wall.hpp"
 #include "gtest/gtest.h"
+#include "rclcpp/rclcpp.hpp"
 
-int main(int argc, char *argv[]) {
-    rclcpp::init(argc, argv);
-    testing::InitGoogleTest(&argc,argv);
+TEST(node_test, test_angle2pos) {
+  auto node = std::make_shared<FollowWallNode>();
 
+  ASSERT_EQ(node->angle2pos(0, -M_PI_2, M_PI_2, 5), 2);
+}
 
-    return RUN_ALL_TESTS();
+int main(int argc, char* argv[]) {
+  rclcpp::init(argc, argv);
+  testing::InitGoogleTest(&argc, argv);
+
+  return RUN_ALL_TESTS();
 }

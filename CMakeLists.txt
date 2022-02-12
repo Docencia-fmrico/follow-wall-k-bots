@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(follow-wall-k-bots)
+project(follow_wall_k_bots)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
