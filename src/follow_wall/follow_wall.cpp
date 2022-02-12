@@ -26,14 +26,11 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
-// Execute:
-//  ros2 lifecycle list /lifecycle_node_example
-//  ros2 lifecycle set /lifecycle_node_example configure
 
 using rcl_interfaces::msg::ParameterType;
 using std::placeholders::_1;
 
-FollowWallNode::FollowWallNode() : rclcpp_lifecycle::LifecycleNode("lifecycle_node_example") {
+FollowWallNode::FollowWallNode() : rclcpp_lifecycle::LifecycleNode("follow_wall_lifecycle_node") {
   laserSub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
       "/scan_raw", 10, std::bind(&FollowWallNode::LaserCallback, this, _1));
   pubVelocity_ = this->create_publisher<geometry_msgs::msg::Twist>("/nav_vel", 100);
@@ -42,7 +39,15 @@ FollowWallNode::FollowWallNode() : rclcpp_lifecycle::LifecycleNode("lifecycle_no
 }
 
 int FollowWallNode::angle2pos(float angle, float min, float max, int size) {
-  return (angle - min) * size / (max - min);
+  int pos = (angle - min) * size / (max - min);
+
+  if (pos >= size) {
+    return pos - 1;
+  } else if (pos < 0) {
+    return 0;
+  }
+
+  return pos;
 }
 
 // Calculate the minimun distances values in the center, right and left of
@@ -53,11 +58,11 @@ void FollowWallNode::LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr 
   float max = msg->angle_max;
   float size = msg->ranges.size();
 
-  float right = angle2pos(-M_PI / 2 - M_PI / 36, min, max, size);
-  float diag_right = angle2pos(-M_PI / 2 + M_PI / 36, min, max, size);
+  float right = angle2pos(-M_PI_2 - M_PI / 36, min, max, size);
+  float diag_right = angle2pos(-M_PI_2 + M_PI / 36, min, max, size);
 
-  float left = angle2pos(M_PI / 2 + M_PI / 36, min, max, size);
-  float diag_left = angle2pos(M_PI / 2 - M_PI / 36, min, max, size);
+  float left = angle2pos(M_PI_2 + M_PI / 36, min, max, size);
+  float diag_left = angle2pos(M_PI_2 - M_PI / 36, min, max, size);
 
   float center_right = angle2pos(-M_PI / 36, min, max, size);
   float center_left = angle2pos(M_PI / 36, min, max, size);
@@ -78,6 +83,10 @@ void FollowWallNode::LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr 
   measurements.push_back(minRight);
 
   laser_regions = measurements;
+}
+
+std::vector<float> FollowWallNode::getLaserRegions() {
+  return laser_regions;
 }
 
 // Check state depend on the distances
@@ -192,7 +201,7 @@ CallbackReturnT FollowWallNode::on_configure(const rclcpp_lifecycle::State &stat
   } else {
     // Si hemos encontrado la pared decidimos aleatoriamente hacia que lado
     // seguir la pared
-    int num = rand_r(0) % 2;
+    int num = rand() % 2;
 
     if (num == 0) {
       side_ = LEFT_SIDE;

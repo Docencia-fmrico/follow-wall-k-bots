@@ -42,6 +42,7 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
   void FollowTheWall();
   void do_work();
   void LookForWall();
+  std::vector<float> getLaserRegions();
 
  private:
   std::vector<float> laser_regions;
