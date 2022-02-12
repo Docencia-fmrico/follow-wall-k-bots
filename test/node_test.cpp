@@ -31,42 +31,49 @@ TEST(node_test, test_angle2pos) {
   ASSERT_EQ(node->angle2pos(-M_PI_4, -M_PI, M_PI, 360), 135);
 }
 
-TEST(node_test, test_checkState) {
+TEST(node_test, test_checkLaserCallback) {
   sensor_msgs::msg::LaserScan msg;
+
   auto node = std::make_shared<FollowWallNode>();
   auto node_test = rclcpp::Node::make_shared("test_node");
   auto publisher = node_test->create_publisher<sensor_msgs::msg::LaserScan>("/scan_raw", 10);
 
-  std::cout << "PEPE 1" << std::endl;
-  msg.angle_min = -M_PI;
-  std::cout << "PEPE 2" << std::endl;
-  msg.angle_max = M_PI;
-  std::cout << "PEPE 3" << std::endl;
-  msg.ranges = std::vector<float>(180, 10);
+  rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(node->get_node_base_interface());
+  executor.add_node(node_test);
 
-  msg.ranges[45] = 5;
-  msg.ranges[90] = 6;
-  msg.ranges[135] = 3;
+  msg.angle_min = -M_PI;
+  msg.angle_max = M_PI;
+  msg.ranges = std::vector<float>(180, 10);
+  
+  msg.ranges[45] = 5.0; // Right side of the robot. -PI/2
+  msg.ranges[90] = 6.0; // Center of the robot. 0 Degrees
+  msg.ranges[135] = 3.0; // Left of the robot. PI/2
+  
+  bool finished = false;
 
   std::thread t([&]() {
     rclcpp::Rate rate(30);
-    while (rclcpp::ok()) {
-      node->do_work();
-
-      rclcpp::spin_some(node->get_node_base_interface());
+    while (rclcpp::ok() && !finished) {
+      msg.header.stamp = rclcpp::Time();
+      publisher->publish(msg);
+      executor.spin_some();
+      
       rate.sleep();
     }
   });
 
-  std::vector<float> laser_regions = node->getLaserRegions();
-
-  while (laser_regions.size() == 0) {
-    laser_regions = node->getLaserRegions();
+  while (node->laser_regions.size() == 0) {
+    continue;
   }
 
-  ASSERT_EQ(laser_regions[0], 3);
-  ASSERT_EQ(laser_regions[1], 6);
-  ASSERT_EQ(laser_regions[2], 5);
+  ASSERT_EQ(node->laser_regions[0], 3.0);
+  ASSERT_EQ(node->laser_regions[1], 6.0);
+  ASSERT_EQ(node->laser_regions[2], 5.0);
+
+  finished = true;
+  t.join();
+  
 }
 
 int main(int argc, char* argv[]) {

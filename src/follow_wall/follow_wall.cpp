@@ -85,9 +85,6 @@ void FollowWallNode::LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr 
   laser_regions = measurements;
 }
 
-std::vector<float> FollowWallNode::getLaserRegions() {
-  return laser_regions;
-}
 
 // Check state depend on the distances
 void FollowWallNode::CheckState() {

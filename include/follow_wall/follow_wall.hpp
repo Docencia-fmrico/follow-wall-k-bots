@@ -44,8 +44,9 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
   void LookForWall();
   std::vector<float> getLaserRegions();
 
- private:
   std::vector<float> laser_regions;
+
+ private:
   std::vector<float> laser_regions_prev;
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserSub_;
 
