@@ -17,7 +17,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "follow_wall/follow_wall.hpp"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char * argv[])
+{
   rclcpp::init(argc, argv);
 
   auto node = std::make_shared<FollowWallNode>();

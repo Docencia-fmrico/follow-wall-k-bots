@@ -24,18 +24,19 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 
-class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
- public:
+class FollowWallNode : public rclcpp_lifecycle::LifecycleNode
+{
+public:
   FollowWallNode();
 
   using CallbackReturnT = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-  CallbackReturnT on_configure(const rclcpp_lifecycle::State& state);
-  CallbackReturnT on_activate(const rclcpp_lifecycle::State& state);
-  CallbackReturnT on_deactivate(const rclcpp_lifecycle::State& state);
-  CallbackReturnT on_cleanup(const rclcpp_lifecycle::State& state);
-  CallbackReturnT on_shutdown(const rclcpp_lifecycle::State& state);
-  CallbackReturnT on_error(const rclcpp_lifecycle::State& state);
+  CallbackReturnT on_configure(const rclcpp_lifecycle::State & state);
+  CallbackReturnT on_activate(const rclcpp_lifecycle::State & state);
+  CallbackReturnT on_deactivate(const rclcpp_lifecycle::State & state);
+  CallbackReturnT on_cleanup(const rclcpp_lifecycle::State & state);
+  CallbackReturnT on_shutdown(const rclcpp_lifecycle::State & state);
+  CallbackReturnT on_error(const rclcpp_lifecycle::State & state);
 
   void LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg);
 
@@ -47,8 +48,7 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
 
   std::vector<float> laser_regions;
 
-
- private:
+private:
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserSub_;
   rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr pubVelocity_;
 
@@ -64,19 +64,22 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
   int state_ = GOING_FORWARD;
   int side_ = 0;
 
-  enum robot_side {
+  enum robot_side
+  {
     LEFT_SIDE = 1,
     RIGHT_SIDE
   };
 
-  enum movement {
+  enum movement
+  {
     GOING_FORWARD = 1,
     TURN_SAME_SIDE,
     TURN_OPPOSITE_SIDE,
     WALL_AHEAD
   };
 
-  enum laser_side {
+  enum laser_side
+  {
     LEFT = 0,
     CENTER,
     RIGHT

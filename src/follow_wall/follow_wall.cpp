@@ -13,7 +13,6 @@
 // limitations under the License.
 
 
-
 #include <time.h>
 
 #include <algorithm>
@@ -31,13 +30,16 @@
 using rcl_interfaces::msg::ParameterType;
 using std::placeholders::_1;
 
-FollowWallNode::FollowWallNode() : rclcpp_lifecycle::LifecycleNode("follow_wall_lifecycle_node") {
+FollowWallNode::FollowWallNode()
+: rclcpp_lifecycle::LifecycleNode("follow_wall_lifecycle_node")
+{
   laserSub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
-      "/scan_raw", 10, std::bind(&FollowWallNode::LaserCallback, this, _1));
+    "/scan_raw", 10, std::bind(&FollowWallNode::LaserCallback, this, _1));
   pubVelocity_ = this->create_publisher<geometry_msgs::msg::Twist>("/nav_vel", 100);
 }
 
-int FollowWallNode::angle2pos(float angle, float min, float max, int size) {
+int FollowWallNode::angle2pos(float angle, float min, float max, int size)
+{
   int pos = (angle - min) * size / (max - min);
 
   if (pos >= size) {
@@ -52,7 +54,8 @@ int FollowWallNode::angle2pos(float angle, float min, float max, int size) {
 // Calculate the minimun distances values in the center, right and left of
 // the robot with range
 
-void FollowWallNode::LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg) {
+void FollowWallNode::LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg)
+{
   float min = msg->angle_min;
   float max = msg->angle_max;
   float size = msg->ranges.size();
@@ -66,12 +69,15 @@ void FollowWallNode::LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr 
   float center_right = angle2pos(-M_PI / 36.0, min, max, size);
   float center_left = angle2pos(M_PI / 36.0, min, max, size);
 
-  float minRight = *std::min_element(std::next(msg->ranges.begin(), right),
-                                     std::next(msg->ranges.begin(), diag_right));
-  float minCenter = *std::min_element(std::next(msg->ranges.begin(), center_right),
-                                      std::next(msg->ranges.begin(), center_left));
-  float minLeft = *std::min_element(std::next(msg->ranges.begin(), diag_left),
-                                    std::next(msg->ranges.begin(), left));
+  float minRight = *std::min_element(
+    std::next(msg->ranges.begin(), right),
+    std::next(msg->ranges.begin(), diag_right));
+  float minCenter = *std::min_element(
+    std::next(msg->ranges.begin(), center_right),
+    std::next(msg->ranges.begin(), center_left));
+  float minLeft = *std::min_element(
+    std::next(msg->ranges.begin(), diag_left),
+    std::next(msg->ranges.begin(), left));
 
   std::vector<float> measurements;
 
@@ -85,7 +91,8 @@ void FollowWallNode::LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr 
 }
 
 // Check state depend on the distances
-void FollowWallNode::CheckState() {
+void FollowWallNode::CheckState()
+{
   float side_distance, center_distance;
 
   center_distance = laser_regions[CENTER];
@@ -123,7 +130,8 @@ void FollowWallNode::CheckState() {
 }
 
 // Finite state machine
-void FollowWallNode::FollowTheWall() {
+void FollowWallNode::FollowTheWall()
+{
   geometry_msgs::msg::Twist msg;
   float angular_velocity = ANGULAR_VELOCITY;
 
@@ -163,11 +171,13 @@ void FollowWallNode::FollowTheWall() {
 using CallbackReturnT = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
 // Search the wall in the world
-void FollowWallNode::LookForWall() {
+void FollowWallNode::LookForWall()
+{
   geometry_msgs::msg::Twist msg;
 
   if (laser_regions[LEFT] < MAX_DISTANCE || laser_regions[CENTER] < MAX_DISTANCE ||
-      laser_regions[RIGHT] < MAX_DISTANCE) {
+    laser_regions[RIGHT] < MAX_DISTANCE)
+  {
     wall_found = true;
     counter_ = 0;
   }
@@ -178,9 +188,11 @@ void FollowWallNode::LookForWall() {
   pubVelocity_->publish(msg);
 }
 
-CallbackReturnT FollowWallNode::on_configure(const rclcpp_lifecycle::State &state) {
-  RCLCPP_INFO(get_logger(), "[%s] Configuring from [%s] state...", get_name(),
-              state.label().c_str());
+CallbackReturnT FollowWallNode::on_configure(const rclcpp_lifecycle::State & state)
+{
+  RCLCPP_INFO(
+    get_logger(), "[%s] Configuring from [%s] state...", get_name(),
+    state.label().c_str());
 
   while (laser_regions.size() == 0) {
     continue;
@@ -206,7 +218,7 @@ CallbackReturnT FollowWallNode::on_configure(const rclcpp_lifecycle::State &stat
     }
   }
 
-  if (side_ == LEFT_SIDE){
+  if (side_ == LEFT_SIDE) {
     RCLCPP_INFO(get_logger(), "Side: Left");
   } else {
     RCLCPP_INFO(get_logger(), "Side: Right");
@@ -215,44 +227,55 @@ CallbackReturnT FollowWallNode::on_configure(const rclcpp_lifecycle::State &stat
   return CallbackReturnT::SUCCESS;
 }
 
-CallbackReturnT FollowWallNode::on_activate(const rclcpp_lifecycle::State &state) {
-  RCLCPP_INFO(get_logger(), "[%s] Activating from [%s] state...", get_name(),
-              state.label().c_str());
+CallbackReturnT FollowWallNode::on_activate(const rclcpp_lifecycle::State & state)
+{
+  RCLCPP_INFO(
+    get_logger(), "[%s] Activating from [%s] state...", get_name(),
+    state.label().c_str());
 
   pubVelocity_->on_activate();
   return CallbackReturnT::SUCCESS;
 }
 
-CallbackReturnT FollowWallNode::on_deactivate(const rclcpp_lifecycle::State &state) {
-  RCLCPP_INFO(get_logger(), "[%s] Deactivating from [%s] state...", get_name(),
-              state.label().c_str());
+CallbackReturnT FollowWallNode::on_deactivate(const rclcpp_lifecycle::State & state)
+{
+  RCLCPP_INFO(
+    get_logger(), "[%s] Deactivating from [%s] state...", get_name(),
+    state.label().c_str());
 
   pubVelocity_->on_deactivate();
   return CallbackReturnT::SUCCESS;
 }
 
-CallbackReturnT FollowWallNode::on_cleanup(const rclcpp_lifecycle::State &state) {
-  RCLCPP_INFO(get_logger(), "[%s] Cleanning Up from [%s] state...", get_name(),
-              state.label().c_str());
+CallbackReturnT FollowWallNode::on_cleanup(const rclcpp_lifecycle::State & state)
+{
+  RCLCPP_INFO(
+    get_logger(), "[%s] Cleanning Up from [%s] state...", get_name(),
+    state.label().c_str());
   pubVelocity_.reset();
   return CallbackReturnT::SUCCESS;
 }
 
-CallbackReturnT FollowWallNode::on_shutdown(const rclcpp_lifecycle::State &state) {
-  RCLCPP_INFO(get_logger(), "[%s] Shutting Down from [%s] state...", get_name(),
-              state.label().c_str());
+CallbackReturnT FollowWallNode::on_shutdown(const rclcpp_lifecycle::State & state)
+{
+  RCLCPP_INFO(
+    get_logger(), "[%s] Shutting Down from [%s] state...", get_name(),
+    state.label().c_str());
 
   pubVelocity_.reset();
   return CallbackReturnT::SUCCESS;
 }
 
-CallbackReturnT FollowWallNode::on_error(const rclcpp_lifecycle::State &state) {
-  RCLCPP_INFO(get_logger(), "[%s] Shutting Down from [%s] state...", get_name(),
-              state.label().c_str());
+CallbackReturnT FollowWallNode::on_error(const rclcpp_lifecycle::State & state)
+{
+  RCLCPP_INFO(
+    get_logger(), "[%s] Shutting Down from [%s] state...", get_name(),
+    state.label().c_str());
   return CallbackReturnT::SUCCESS;
 }
 
-void FollowWallNode::do_work() {
+void FollowWallNode::do_work()
+{
   if (laser_regions.size() > 0) {
     if (get_current_state().id() != lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
       return;

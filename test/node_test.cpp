@@ -54,15 +54,15 @@ TEST(node_test, test_checkLaserCallback) {
   bool finished = false;
 
   std::thread t([&]() {
-    rclcpp::Rate rate(30);
-    while (rclcpp::ok() && !finished) {
-      msg.header.stamp = rclcpp::Time();
-      publisher->publish(msg);
-      executor.spin_some();
+      rclcpp::Rate rate(30);
+      while (rclcpp::ok() && !finished) {
+        msg.header.stamp = rclcpp::Time();
+        publisher->publish(msg);
+        executor.spin_some();
 
-      rate.sleep();
-    }
-  });
+        rate.sleep();
+      }
+    });
 
   while (node->laser_regions.size() == 0) {
     continue;
@@ -76,7 +76,8 @@ TEST(node_test, test_checkLaserCallback) {
   t.join();
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char * argv[])
+{
   rclcpp::init(argc, argv);
   testing::InitGoogleTest(&argc, argv);
 
