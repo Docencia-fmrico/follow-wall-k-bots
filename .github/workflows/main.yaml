@@ -23,7 +23,7 @@ jobs:
       - name: build and test
         uses: ros-tooling/action-ros-ci@0.2.3
         with:
-          package-name: practica1
+          package-name: follow_wall_k_bots
           import-token: ${{secrets.GITHUB_TOKEN}}
           target-ros2-distro: foxy
           colcon-defaults: |
