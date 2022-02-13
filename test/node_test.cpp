@@ -14,10 +14,10 @@
 
 #include <memory>
 
-#include "follow_wall/follow_wall.hpp"
 #include "gtest/gtest.h"
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
+#include "follow_wall/follow_wall.hpp"
 
 TEST(node_test, test_angle2pos) {
   auto node = std::make_shared<FollowWallNode>();
@@ -73,7 +73,6 @@ TEST(node_test, test_checkLaserCallback) {
 
   finished = true;
   t.join();
-  
 }
 
 int main(int argc, char* argv[]) {

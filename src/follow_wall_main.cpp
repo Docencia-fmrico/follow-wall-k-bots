@@ -14,8 +14,8 @@
 
 #include <memory>
 
-#include "follow_wall/follow_wall.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "follow_wall/follow_wall.hpp"
 
 int main(int argc, char* argv[]) {
   rclcpp::init(argc, argv);

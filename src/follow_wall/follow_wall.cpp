@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "follow_wall/follow_wall.hpp"
+
 
 #include <time.h>
 
@@ -26,6 +26,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
+#include "follow_wall/follow_wall.hpp"
 
 using rcl_interfaces::msg::ParameterType;
 using std::placeholders::_1;
@@ -58,14 +59,14 @@ void FollowWallNode::LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr 
   float max = msg->angle_max;
   float size = msg->ranges.size();
 
-  float right = angle2pos(-M_PI_2 - M_PI / 36, min, max, size);
-  float diag_right = angle2pos(-M_PI_2 + M_PI / 36, min, max, size);
+  float right = angle2pos(-M_PI_2 - M_PI / 36.0, min, max, size);
+  float diag_right = angle2pos(-M_PI_2 + M_PI / 36.0, min, max, size);
 
-  float left = angle2pos(M_PI_2 + M_PI / 36, min, max, size);
-  float diag_left = angle2pos(M_PI_2 - M_PI / 36, min, max, size);
+  float left = angle2pos(M_PI_2 + M_PI / 36.0, min, max, size);
+  float diag_left = angle2pos(M_PI_2 - M_PI / 36.0, min, max, size);
 
-  float center_right = angle2pos(-M_PI / 36, min, max, size);
-  float center_left = angle2pos(M_PI / 36, min, max, size);
+  float center_right = angle2pos(-M_PI / 36.0, min, max, size);
+  float center_left = angle2pos(M_PI / 36.0, min, max, size);
 
   float minRight = *std::min_element(std::next(msg->ranges.begin(), right),
                                      std::next(msg->ranges.begin(), diag_right));
@@ -85,7 +86,6 @@ void FollowWallNode::LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr 
   laser_regions = measurements;
 }
 
-
 // Check state depend on the distances
 void FollowWallNode::CheckState() {
   float side_distance, center_distance;
@@ -100,17 +100,18 @@ void FollowWallNode::CheckState() {
   }
 
   if (center_distance < MIN_DISTANCE) {
-    state_ = WALL_AFRONT;
-  } else {
-    if (side_distance < MIN_DISTANCE) {
+    state_ = WALL_AHEAD;
+  } else { 
+    if (side_distance < MIN_DISTANCE) { // Too close to wall, move away
       state_ = TURN_OPPOSITE_SIDE;
     } else if (side_distance < MAX_DISTANCE) {
       state_ = GOING_FORWARD;
     } else {
       state_ = TURN_SAME_SIDE;
 
-      if (side_distance > 1.5 && center_distance > 1.5) {
-        if (counter++ > 50) {
+      // Kidnapped situation
+      if (side_distance > RESTART_VALUE && center_distance > RESTART_VALUE) { 
+        if (counter_++ > MAX_ITERATIONS) {
           wall_found = false;
         }
       }
@@ -118,10 +119,11 @@ void FollowWallNode::CheckState() {
   }
 
   if (state_ != TURN_SAME_SIDE) {
-    counter = 0;
+    counter_ = 0;
   }
 }
 
+// Finite state machine 
 void FollowWallNode::FollowTheWall() {
   geometry_msgs::msg::Twist msg;
   float angular_velocity = ANGULAR_VELOCITY;
@@ -130,28 +132,30 @@ void FollowWallNode::FollowTheWall() {
     angular_velocity = -ANGULAR_VELOCITY;
   }
 
-  RCLCPP_WARN(get_logger(), "State: %d", state_);
-
   switch (state_) {
     case GOING_FORWARD:
       msg.linear.x = LINEAL_VELOCITY;
       msg.angular.z = 0;
+      RCLCPP_INFO(get_logger(), "GOING_FORWARD");
       break;
 
     case TURN_SAME_SIDE:
-      msg.linear.x = 0.2;
+      msg.linear.x = LINEAL_VELOCITY / 3.0;
       msg.angular.z = angular_velocity;
+      RCLCPP_INFO(get_logger(), "TURN_SAME_SIDE");
       break;
 
     case TURN_OPPOSITE_SIDE:
-      msg.linear.x = 0.2;
+      msg.linear.x = LINEAL_VELOCITY / 3.0;
       msg.angular.z = -angular_velocity;
+      RCLCPP_INFO(get_logger(), "TURN_OPPOSITE_SIDE");
       break;
 
-    case WALL_AFRONT:
+    case WALL_AHEAD:
       msg.linear.x = 0;
       msg.angular.z = -angular_velocity;
-      break;     
+      RCLCPP_INFO(get_logger(), "WALL_AHEAD");
+      break;
   }
 
   pubVelocity_->publish(msg);
@@ -159,15 +163,14 @@ void FollowWallNode::FollowTheWall() {
 
 using CallbackReturnT = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-/* LookFor Wall in this escenary */
+// Search the wall in the world
 void FollowWallNode::LookForWall() {
   geometry_msgs::msg::Twist msg;
 
-  // Case 1: Diagonal la pared
   if (laser_regions[LEFT] < MAX_DISTANCE || laser_regions[CENTER] < MAX_DISTANCE ||
       laser_regions[RIGHT] < MAX_DISTANCE) {
     wall_found = true;
-    counter = 0;
+    counter_ = 0;
   }
 
   msg.linear.x = LINEAL_VELOCITY;
@@ -180,17 +183,12 @@ CallbackReturnT FollowWallNode::on_configure(const rclcpp_lifecycle::State &stat
   RCLCPP_INFO(get_logger(), "[%s] Configuring from [%s] state...", get_name(),
               state.label().c_str());
 
-  // Nos aseguramos que el laser de medidas
   while (laser_regions.size() == 0) {
     continue;
   }
 
-  // Realizamos la configuracion previa para encontrar la pared,
-  // comprobando los diferentes casos dependiendo de las medidas de laser
-
   wall_found = false;
-  side_ = RIGHT_SIDE;
-  counter = 0;
+  counter_ = 0;
 
   if (laser_regions[LEFT] < MAX_DISTANCE) {
     side_ = LEFT_SIDE;
@@ -199,8 +197,6 @@ CallbackReturnT FollowWallNode::on_configure(const rclcpp_lifecycle::State &stat
     side_ = RIGHT_SIDE;
     wall_found = true;
   } else {
-    // Si hemos encontrado la pared decidimos aleatoriamente hacia que lado
-    // seguir la pared
     int num = rand() % 2;
 
     if (num == 0) {
@@ -208,6 +204,12 @@ CallbackReturnT FollowWallNode::on_configure(const rclcpp_lifecycle::State &stat
     } else {
       side_ = RIGHT_SIDE;
     }
+  }
+
+  if (side_ == LEFT_SIDE){
+    RCLCPP_INFO(get_logger(), "Side: Left");
+  } else {
+    RCLCPP_INFO(get_logger(), "Side: Right");
   }
 
   return CallbackReturnT::SUCCESS;
