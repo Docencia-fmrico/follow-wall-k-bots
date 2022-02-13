@@ -35,8 +35,6 @@ FollowWallNode::FollowWallNode() : rclcpp_lifecycle::LifecycleNode("follow_wall_
   laserSub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
       "/scan_raw", 10, std::bind(&FollowWallNode::LaserCallback, this, _1));
   pubVelocity_ = this->create_publisher<geometry_msgs::msg::Twist>("/nav_vel", 100);
-
-  srand(time(NULL));
 }
 
 int FollowWallNode::angle2pos(float angle, float min, float max, int size) {
@@ -101,8 +99,9 @@ void FollowWallNode::CheckState() {
 
   if (center_distance < MIN_DISTANCE) {
     state_ = WALL_AHEAD;
-  } else { 
-    if (side_distance < MIN_DISTANCE) { // Too close to wall, move away
+  } else {
+    // Too close to wall, move away
+    if (side_distance < MIN_DISTANCE) {
       state_ = TURN_OPPOSITE_SIDE;
     } else if (side_distance < MAX_DISTANCE) {
       state_ = GOING_FORWARD;
@@ -110,7 +109,7 @@ void FollowWallNode::CheckState() {
       state_ = TURN_SAME_SIDE;
 
       // Kidnapped situation
-      if (side_distance > RESTART_VALUE && center_distance > RESTART_VALUE) { 
+      if (side_distance > RESTART_VALUE && center_distance > RESTART_VALUE) {
         if (counter_++ > MAX_ITERATIONS) {
           wall_found = false;
         }
@@ -123,7 +122,7 @@ void FollowWallNode::CheckState() {
   }
 }
 
-// Finite state machine 
+// Finite state machine
 void FollowWallNode::FollowTheWall() {
   geometry_msgs::msg::Twist msg;
   float angular_velocity = ANGULAR_VELOCITY;
@@ -197,7 +196,8 @@ CallbackReturnT FollowWallNode::on_configure(const rclcpp_lifecycle::State &stat
     side_ = RIGHT_SIDE;
     wall_found = true;
   } else {
-    int num = rand() % 2;
+    unsigned int seed = time(NULL);
+    int num = rand_r(&seed) % 2;
 
     if (num == 0) {
       side_ = LEFT_SIDE;

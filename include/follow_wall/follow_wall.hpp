@@ -58,29 +58,28 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
   const float MIN_DISTANCE = 0.4;
   const float RESTART_VALUE = 1.5;
   const int MAX_ITERATIONS = 50;
-  
   bool wall_found = false;
 
   int counter_ = 0;
   int state_ = GOING_FORWARD;
   int side_ = 0;
 
-  enum robot_side { 
-    LEFT_SIDE = 1, 
-    RIGHT_SIDE 
+  enum robot_side {
+    LEFT_SIDE = 1,
+    RIGHT_SIDE
   };
 
   enum movement {
     GOING_FORWARD = 1,
-    TURN_SAME_SIDE,  
+    TURN_SAME_SIDE,
     TURN_OPPOSITE_SIDE,
     WALL_AHEAD
   };
 
-  enum laser_side { 
-    LEFT = 0, 
-    CENTER, 
-    RIGHT 
+  enum laser_side {
+    LEFT = 0,
+    CENTER,
+    RIGHT
   };
 };
 

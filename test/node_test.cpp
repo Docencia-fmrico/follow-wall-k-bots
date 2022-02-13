@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <memory>
+#include <vector>
 
 #include "gtest/gtest.h"
 #include "rclcpp/rclcpp.hpp"
@@ -45,11 +46,11 @@ TEST(node_test, test_checkLaserCallback) {
   msg.angle_min = -M_PI;
   msg.angle_max = M_PI;
   msg.ranges = std::vector<float>(180, 10);
-  
-  msg.ranges[45] = 5.0; // Right side of the robot. -PI/2
-  msg.ranges[90] = 6.0; // Center of the robot. 0 Degrees
-  msg.ranges[135] = 3.0; // Left of the robot. PI/2
-  
+
+  msg.ranges[45] = 5.0;   // Right side of the robot. -PI/2
+  msg.ranges[90] = 6.0;   // Center of the robot. 0 Degrees
+  msg.ranges[135] = 3.0;  // Left of the robot. PI/2
+
   bool finished = false;
 
   std::thread t([&]() {
@@ -58,7 +59,7 @@ TEST(node_test, test_checkLaserCallback) {
       msg.header.stamp = rclcpp::Time();
       publisher->publish(msg);
       executor.spin_some();
-      
+
       rate.sleep();
     }
   });
