@@ -99,23 +99,21 @@ void FollowWallNode::CheckState() {
     side_distance = laser_regions[RIGHT];
   }
 
-  if (side_distance < MIN_DISTANCE || center_distance < MIN_DISTANCE) {
-    state_ = TURN_OPPOSITE_SIDE;
-  } else if (side_distance > MAX_DISTANCE && center_distance > MIN_DISTANCE) {
-    state_ = TURN_SAME_SIDE;
-
-    if (side_distance > 1.5 && center_distance > 1.5) {
-      if (counter++ > 100) {
-        wall_found = false;
-      }
-    }
-  } else if (side_distance < MAX_DISTANCE && center_distance > MIN_DISTANCE) {
-    state_ = GOING_FORWARD;
-  } else if (side_distance < MAX_DISTANCE && center_distance < MIN_DISTANCE) {
+  if (center_distance < MIN_DISTANCE) {
+    state_ = WALL_AFRONT;
+  } else {
     if (side_distance < MIN_DISTANCE) {
       state_ = TURN_OPPOSITE_SIDE;
+    } else if (side_distance < MAX_DISTANCE) {
+      state_ = GOING_FORWARD;
     } else {
       state_ = TURN_SAME_SIDE;
+
+      if (side_distance > 1.5 && center_distance > 1.5) {
+        if (counter++ > 50) {
+          wall_found = false;
+        }
+      }
     }
   }
 
@@ -146,9 +144,14 @@ void FollowWallNode::FollowTheWall() {
       break;
 
     case TURN_OPPOSITE_SIDE:
-      msg.linear.x = 0;
+      msg.linear.x = 0.2;
       msg.angular.z = -angular_velocity;
       break;
+
+    case WALL_AFRONT:
+      msg.linear.x = 0;
+      msg.angular.z = -angular_velocity;
+      break;     
   }
 
   pubVelocity_->publish(msg);

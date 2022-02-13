@@ -65,7 +65,8 @@ class FollowWallNode : public rclcpp_lifecycle::LifecycleNode {
   enum movement {
     GOING_FORWARD = 1,
     TURN_SAME_SIDE,  // wall side
-    TURN_OPPOSITE_SIDE
+    TURN_OPPOSITE_SIDE,
+    WALL_AFRONT
   };
 
   enum laser_side { LEFT = 0, CENTER, RIGHT };
