@@ -81,9 +81,7 @@ void FollowWallNode::LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr 
   std::vector<float> measurements;
 
   measurements.push_back(minLeft);
-
   measurements.push_back(minCenter);
-
   measurements.push_back(minRight);
 
   laser_regions = measurements;
@@ -98,7 +96,6 @@ void FollowWallNode::CheckState()
 
   if (side_ == LEFT_SIDE) {
     side_distance = laser_regions[LEFT];
-
   } else {
     side_distance = laser_regions[RIGHT];
   }
