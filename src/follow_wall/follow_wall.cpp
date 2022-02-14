@@ -42,7 +42,7 @@ int FollowWallNode::angle2pos(float angle, float min, float max, int size)
   int pos = (angle - min) * size / (max - min);
 
   if (pos >= size) {
-    return pos - 1;
+    return size - 1;
   } else if (pos < 0) {
     return 0;
   }
