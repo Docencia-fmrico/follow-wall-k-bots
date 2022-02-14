@@ -35,7 +35,6 @@ FollowWallNode::FollowWallNode()
 {
   laserSub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
     "/scan_raw", 10, std::bind(&FollowWallNode::LaserCallback, this, _1));
-  pubVelocity_ = this->create_publisher<geometry_msgs::msg::Twist>("/nav_vel", 100);
 }
 
 int FollowWallNode::angle2pos(float angle, float min, float max, int size)
@@ -193,6 +192,8 @@ CallbackReturnT FollowWallNode::on_configure(const rclcpp_lifecycle::State & sta
   RCLCPP_INFO(
     get_logger(), "[%s] Configuring from [%s] state...", get_name(),
     state.label().c_str());
+
+  pubVelocity_ = this->create_publisher<geometry_msgs::msg::Twist>("/nav_vel", 100);
 
   while (laser_regions.size() == 0) {
     continue;
