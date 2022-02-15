@@ -29,7 +29,7 @@ FollowWallNode::on_configure() {
   }
 }
 ```
-Una vez se ha realizado la configuración, se espera a que el nodo sea activado para comenzar a mover el robot. Si se desease cambiar la configuración de que lado sigue el robot, basta con volver a ejecutar la transición on_configure().
+Una vez se ha realizado la configuración, se espera a que el nodo sea activado para comenzar a mover el robot. Si se desease cambiar la configuración de qué lado sigue el robot, basta con volver a ejecutar la transición on_configure().
 
 [[Video de reconfiguración]](https://youtu.be/Y4X0Fe2ARrQ)
 
@@ -37,7 +37,7 @@ Cuando se active el nodo se realizará el siguiente proceso de comprobación. Un
 <p align="center">
 <img src="./images/casecontrol.png" width="75%" height="75%">
 </p align>
-En el caso de que se aleje al robot de la pared, este comenzará a girar hacía el lado que estaba siguiendo. Se ha contemplado que si ha entrado en dicho estado, un número concreto de iteraciones, el robot deje hacer este movimiento y vuelva a buscar la pared avanzando hacia una dirección hasta volver a encontrarla.
+En el caso de que se aleje al robot de la pared, este comenzará a girar hacía el lado que estaba siguiendo. Se ha contemplado que si ha entrado en dicho estado, un número concreto de iteraciones, el robot deje de hacer este movimiento y vuelva a buscar la pared avanzando hacia una dirección hasta volver a encontrarla.
 
 [[Video de alejar de pared]](https://youtu.be/vCkj9qj-gTk)
 
