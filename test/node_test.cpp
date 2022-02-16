@@ -76,6 +76,146 @@ TEST(node_test, test_checkLaserCallback) {
   t.join();
 }
 
+TEST(node_test, test_checkInf) {
+  sensor_msgs::msg::LaserScan msg;
+
+  auto node = std::make_shared<FollowWallNode>();
+  auto node_test = rclcpp::Node::make_shared("test_node");
+  auto publisher = node_test->create_publisher<sensor_msgs::msg::LaserScan>("/scan_raw", 10);
+
+  rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(node->get_node_base_interface());
+  executor.add_node(node_test);
+
+  msg.angle_min = -M_PI;
+  msg.angle_max = M_PI;
+  msg.ranges = std::vector<float>(180, INFINITY);
+
+  msg.ranges[45] = 5.0;   // Right side of the robot. -PI/2
+  msg.ranges[90] = 6.0;   // Center of the robot. 0 Degrees
+  msg.ranges[135] = 3.0;  // Left of the robot. PI/2
+
+  bool finished = false;
+
+  std::thread t([&]() {
+      rclcpp::Rate rate(30);
+      while (rclcpp::ok() && !finished) {
+        msg.header.stamp = rclcpp::Time();
+        publisher->publish(msg);
+        executor.spin_some();
+
+        rate.sleep();
+      }
+    });
+
+  while (node->laser_regions.size() == 0) {
+    continue;
+  }
+
+  ASSERT_EQ(node->laser_regions[0], 3.0);
+  ASSERT_EQ(node->laser_regions[1], 6.0);
+  ASSERT_EQ(node->laser_regions[2], 5.0);
+
+  finished = true;
+  t.join();
+}
+
+TEST(node_test, test_checkNan) {
+  sensor_msgs::msg::LaserScan msg;
+
+  auto node = std::make_shared<FollowWallNode>();
+  auto node_test = rclcpp::Node::make_shared("test_node");
+  auto publisher = node_test->create_publisher<sensor_msgs::msg::LaserScan>("/scan_raw", 10);
+
+  rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(node->get_node_base_interface());
+  executor.add_node(node_test);
+
+  msg.angle_min = -M_PI;
+  msg.angle_max = M_PI;
+  msg.ranges = std::vector<float>(180, NAN);
+
+  msg.ranges[45] = 5.0;   // Right side of the robot. -PI/2
+  msg.ranges[90] = 6.0;   // Center of the robot. 0 Degrees
+  msg.ranges[135] = 3.0;  // Left of the robot. PI/2
+
+  bool finished = false;
+
+  std::thread t([&]() {
+      rclcpp::Rate rate(30);
+      while (rclcpp::ok() && !finished) {
+        msg.header.stamp = rclcpp::Time();
+        publisher->publish(msg);
+        executor.spin_some();
+
+        rate.sleep();
+      }
+    });
+
+  while (node->laser_regions.size() == 0) {
+    continue;
+  }
+
+  ASSERT_EQ(node->laser_regions[0], 3.0);
+  ASSERT_EQ(node->laser_regions[1], 6.0);
+  ASSERT_EQ(node->laser_regions[2], 5.0);
+
+  finished = true;
+  t.join();
+}
+
+TEST(node_test, test_checkNanandInf) {
+  sensor_msgs::msg::LaserScan msg;
+
+  auto node = std::make_shared<FollowWallNode>();
+  auto node_test = rclcpp::Node::make_shared("test_node");
+  auto publisher = node_test->create_publisher<sensor_msgs::msg::LaserScan>("/scan_raw", 10);
+
+  rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(node->get_node_base_interface());
+  executor.add_node(node_test);
+
+  msg.angle_min = -M_PI;
+  msg.angle_max = M_PI;
+  msg.ranges = std::vector<float>(180, 0);
+
+  for (int i = 0; i < 180; i++) {
+    if (i % 2 == 0) {
+      msg.ranges[i] = INFINITY;
+    } else {
+      msg.ranges[i] = NAN;
+    }
+  }
+
+  msg.ranges[45] = 5.0;   // Right side of the robot. -PI/2
+  msg.ranges[90] = 6.0;   // Center of the robot. 0 Degrees
+  msg.ranges[135] = 3.0;  // Left of the robot. PI/2
+
+  bool finished = false;
+
+  std::thread t([&]() {
+      rclcpp::Rate rate(30);
+      while (rclcpp::ok() && !finished) {
+        msg.header.stamp = rclcpp::Time();
+        publisher->publish(msg);
+        executor.spin_some();
+
+        rate.sleep();
+      }
+    });
+
+  while (node->laser_regions.size() == 0) {
+    continue;
+  }
+
+  ASSERT_EQ(node->laser_regions[0], 3.0);
+  ASSERT_EQ(node->laser_regions[1], 6.0);
+  ASSERT_EQ(node->laser_regions[2], 5.0);
+
+  finished = true;
+  t.join();
+}
+
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);

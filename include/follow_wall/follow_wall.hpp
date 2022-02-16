@@ -38,6 +38,8 @@ public:
   CallbackReturnT on_shutdown(const rclcpp_lifecycle::State & state);
   CallbackReturnT on_error(const rclcpp_lifecycle::State & state);
 
+  static bool comparator(float a, float b);
+
   void LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg);
 
   int angle2pos(float angle, float min, float max, int size);

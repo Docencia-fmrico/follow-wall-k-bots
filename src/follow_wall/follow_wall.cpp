@@ -50,6 +50,22 @@ int FollowWallNode::angle2pos(float angle, float min, float max, int size)
   return pos;
 }
 
+// If a is less than b returns true
+bool FollowWallNode::comparator(float a, float b)
+{
+  // If a is inf or nan return false
+  if (std::isnan(a) || std::isinf(a)) {
+    return false;
+  }
+
+  // If a is a number and b is nan or inf, return true
+  if (std::isinf(b) || std::isnan(b)) {
+    return true;
+  }
+
+  // If both are numbers return the value of the comparison
+  return a < b;
+}
 // Calculate the minimun distances values in the center, right and left of
 // the robot with range
 
@@ -70,13 +86,13 @@ void FollowWallNode::LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr 
 
   float minRight = *std::min_element(
     std::next(msg->ranges.begin(), right),
-    std::next(msg->ranges.begin(), diag_right));
+    std::next(msg->ranges.begin(), diag_right), FollowWallNode::comparator);
   float minCenter = *std::min_element(
     std::next(msg->ranges.begin(), center_right),
-    std::next(msg->ranges.begin(), center_left));
+    std::next(msg->ranges.begin(), center_left), FollowWallNode::comparator);
   float minLeft = *std::min_element(
     std::next(msg->ranges.begin(), diag_left),
-    std::next(msg->ranges.begin(), left));
+    std::next(msg->ranges.begin(), left), FollowWallNode::comparator);
 
   std::vector<float> measurements;
 
