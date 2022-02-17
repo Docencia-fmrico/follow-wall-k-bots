@@ -47,6 +47,7 @@ public:
   void FollowTheWall();
   void do_work();
   void LookForWall();
+  void SelectSide();
 
   std::vector<float> laser_regions;
 
@@ -54,13 +55,19 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserSub_;
   rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr pubVelocity_;
 
-  const float LINEAL_VELOCITY = 0.6;
-  const float ANGULAR_VELOCITY = 1;
-  const float MAX_DISTANCE = 0.5;
-  const float MIN_DISTANCE = 0.4;
+  const float NAN_DISTANCE = 0.33;
+  const float INF_DISTANCE = 3.5;
+
+  const float LINEAL_VELOCITY = 0.3;
+  const float ANGULAR_VELOCITY = 0.5;
+
+  const float MAX_DISTANCE = 1.0;
+  const float MIN_DISTANCE = 0.8;
+
   const float RESTART_VALUE = 1.5;
-  const int MAX_ITERATIONS = 50;
+  const int MAX_ITERATIONS = 150;
   bool wall_found = false;
+  bool state_configure = false;
 
   int counter_ = 0;
   int state_ = GOING_FORWARD;

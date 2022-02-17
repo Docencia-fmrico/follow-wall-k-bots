@@ -34,7 +34,7 @@ FollowWallNode::FollowWallNode()
 : rclcpp_lifecycle::LifecycleNode("follow_wall_lifecycle_node")
 {
   laserSub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
-    "/scan_raw", 10, std::bind(&FollowWallNode::LaserCallback, this, _1));
+    "/scan_filtered", 10, std::bind(&FollowWallNode::LaserCallback, this, _1));
 }
 
 int FollowWallNode::angle2pos(float angle, float min, float max, int size)
@@ -75,14 +75,14 @@ void FollowWallNode::LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr 
   float max = msg->angle_max;
   float size = msg->ranges.size();
 
-  float right = angle2pos(-M_PI_2 - M_PI / 36.0, min, max, size);
-  float diag_right = angle2pos(-M_PI_2 + M_PI / 36.0, min, max, size);
+  float right = angle2pos(-M_PI_2 - M_PI / 18.0, min, max, size);
+  float diag_right = angle2pos(-M_PI_2 + M_PI / 18.0, min, max, size);
 
-  float left = angle2pos(M_PI_2 + M_PI / 36.0, min, max, size);
-  float diag_left = angle2pos(M_PI_2 - M_PI / 36.0, min, max, size);
+  float left = angle2pos(M_PI_2 + M_PI / 18.0, min, max, size);
+  float diag_left = angle2pos(M_PI_2 - M_PI / 18.0, min, max, size);
 
-  float center_right = angle2pos(-M_PI / 36.0, min, max, size);
-  float center_left = angle2pos(M_PI / 36.0, min, max, size);
+  float center_right = angle2pos(M_PI - M_PI / 10.0, min, max, size);
+  float center_left = angle2pos(M_PI + M_PI / 10.0, min, max, size);
 
   float minRight = *std::min_element(
     std::next(msg->ranges.begin(), right),
@@ -94,11 +94,39 @@ void FollowWallNode::LaserCallback(const sensor_msgs::msg::LaserScan::SharedPtr 
     std::next(msg->ranges.begin(), diag_left),
     std::next(msg->ranges.begin(), left), FollowWallNode::comparator);
 
+  if (std::isnan(minLeft)) {
+    minLeft = NAN_DISTANCE;
+  }
+
+ if (std::isnan(minCenter)) {
+    minCenter = NAN_DISTANCE;
+  }
+
+  if (std::isnan(minRight)) {
+    minRight = NAN_DISTANCE;
+  }
+
+  if (std::isinf(minLeft)) {
+    minLeft = INF_DISTANCE;
+  }
+
+  if (std::isinf(minCenter)) {
+    minCenter = INF_DISTANCE;
+  }
+
+  if (std::isinf(minRight)) {
+    minRight = INF_DISTANCE;
+  }
+
+
   std::vector<float> measurements;
+
 
   measurements.push_back(minLeft);
   measurements.push_back(minCenter);
   measurements.push_back(minRight);
+
+  RCLCPP_WARN(get_logger(), "%f %f %f\n",minLeft,minCenter,minRight);
 
   laser_regions = measurements;
 }
@@ -139,6 +167,38 @@ void FollowWallNode::CheckState()
   if (state_ != TURN_SAME_SIDE) {
     counter_ = 0;
   }
+}
+
+void FollowWallNode::SelectSide(){
+  state_configure = true;
+  wall_found = false;
+  counter_ = 0;
+
+  if (laser_regions[LEFT] < MAX_DISTANCE) {
+    side_ = LEFT_SIDE;
+    wall_found = true;
+  } else if (laser_regions[RIGHT] < MAX_DISTANCE) {
+    side_ = RIGHT_SIDE;
+    wall_found = true;
+  } else {
+    unsigned int seed = time(NULL);
+    int num = rand_r(&seed) % 2;
+
+    if (num == 0) {
+      side_ = LEFT_SIDE;
+    } else {
+      side_ = RIGHT_SIDE;
+    }
+  }
+
+  if (side_ == LEFT_SIDE) {
+    RCLCPP_INFO(get_logger(), "Side: Left");
+  } else {
+    RCLCPP_INFO(get_logger(), "Side: Right");
+  }
+
+  
+
 }
 
 // Finite state machine
@@ -206,37 +266,9 @@ CallbackReturnT FollowWallNode::on_configure(const rclcpp_lifecycle::State & sta
     get_logger(), "[%s] Configuring from [%s] state...", get_name(),
     state.label().c_str());
 
-  pubVelocity_ = this->create_publisher<geometry_msgs::msg::Twist>("/nav_vel", 100);
-
-  while (laser_regions.size() == 0) {
-    continue;
-  }
-
-  wall_found = false;
-  counter_ = 0;
-
-  if (laser_regions[LEFT] < MAX_DISTANCE) {
-    side_ = LEFT_SIDE;
-    wall_found = true;
-  } else if (laser_regions[RIGHT] < MAX_DISTANCE) {
-    side_ = RIGHT_SIDE;
-    wall_found = true;
-  } else {
-    unsigned int seed = time(NULL);
-    int num = rand_r(&seed) % 2;
-
-    if (num == 0) {
-      side_ = LEFT_SIDE;
-    } else {
-      side_ = RIGHT_SIDE;
-    }
-  }
-
-  if (side_ == LEFT_SIDE) {
-    RCLCPP_INFO(get_logger(), "Side: Left");
-  } else {
-    RCLCPP_INFO(get_logger(), "Side: Right");
-  }
+  pubVelocity_ = this->create_publisher<geometry_msgs::msg::Twist>("/commands/velocity", 100);
+  
+  state_configure = false;
 
   return CallbackReturnT::SUCCESS;
 }
@@ -290,12 +322,15 @@ CallbackReturnT FollowWallNode::on_error(const rclcpp_lifecycle::State & state)
 
 void FollowWallNode::do_work()
 {
+  
+  if (get_current_state().id() != lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
+    return;
+  }
   if (laser_regions.size() > 0) {
-    if (get_current_state().id() != lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
-      return;
-    }
-
     if (pubVelocity_->is_activated()) {
+      if(!state_configure){
+        SelectSide();
+      }
       if (!wall_found) {
         LookForWall();
       } else {
