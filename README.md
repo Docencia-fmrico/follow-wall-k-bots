@@ -44,4 +44,5 @@ En el caso de que se aleje al robot de la pared, este comenzará a girar hacía 
 ## Video DEMO
 
 [[Demo]](https://youtu.be/Omu6V5bajiw)
+[[Demo Kobuki Real]](https://youtu.be/rBmrcK2q36I)
 
